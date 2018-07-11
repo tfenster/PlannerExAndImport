@@ -1,0 +1,34 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "build",
+            "command": "dotnet",
+            "type": "process",
+            "args": [
+                "build",
+                "${workspaceFolder}/PlannerExAndImport.csproj"
+            ],
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "release",
+            "command": "dotnet",
+            "type": "process",
+            "args" : ["publish", "--self-contained", "-c", "Release", "-r", "win10-x64"],
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "sign",
+            "command": "C:/Program Files (x86)/Windows Kits/10/bin/10.0.15063.0/x64/signtool.exe",
+            "type": "process",
+            "args": [
+                "sign",
+                "/n", "Axians Infoma GmbH",
+                "/t", "http://timestamp.verisign.com/scripts/timestamp.dll",
+                "${workspaceFolder}/bin/Release/netcoreapp2.0/win10-x64/publish/PlannerExAndImport.exe"
+            ],
+            "problemMatcher": "$msCompile"
+        }
+    ]
+}
