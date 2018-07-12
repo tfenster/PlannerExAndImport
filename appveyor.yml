@@ -1,0 +1,20 @@
+version: 0.1.{build}
+image: Visual Studio 2017
+
+environment:
+  DOCKER_USER:
+    secure: nHwrPdbn8UjqclpwV3Mpug==
+  DOCKER_PASS:
+    secure: 5ECm1x1PW9wCiCDsRQdOvQ==
+install:
+  - docker version
+
+build_script:
+  - docker build -t tobiasfenster/plannerexandimport .
+
+test_script:
+  - docker run tobiasfenster/plannerexandimport
+
+deploy_script:
+  - docker login -u="$env:DOCKER_USER" -p="$env:DOCKER_PASS"
+  - docker push tobiasfenster/plannerexandimport
