@@ -6,14 +6,15 @@ environment:
     secure: nHwrPdbn8UjqclpwV3Mpug==
   DOCKER_PASS:
     secure: 5ECm1x1PW9wCiCDsRQdOvQ==
+
 install:
-  - docker version
+  - ps: docker version
 
 build_script:
-  - docker build -t tobiasfenster/plannerexandimport .
+  - ps: docker build -t tobiasfenster/plannerexandimport .
 
 test_script:
-  - docker run tobiasfenster/plannerexandimport
+  - cmd: docker run tobiasfenster/plannerexandimport
 
 deploy_script:
   - ps: >-
