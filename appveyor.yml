@@ -13,8 +13,8 @@ install:
 build_script:
 - ps: docker build -t tobiasfenster/plannerexandimport .
 
-test_script:
-- cmd: docker run tobiasfenster/plannerexandimport
+#test_script:
+#- cmd: docker run tobiasfenster/plannerexandimport
 
 deploy_script:
 - ps: >-
