@@ -8,16 +8,16 @@ environment:
     secure: 5ECm1x1PW9wCiCDsRQdOvQ==
 
 install:
-  - ps: docker version
+- ps: docker version
 
 build_script:
-  - ps: docker build -t tobiasfenster/plannerexandimport .
+- ps: docker build -t tobiasfenster/plannerexandimport .
 
 test_script:
-  - cmd: docker run tobiasfenster/plannerexandimport
+- cmd: docker run tobiasfenster/plannerexandimport
 
 deploy_script:
-  - ps: >-
+- ps: >-
     if ($env:APPVEYOR_REPO_BRANCH -eq "master") {
         docker login -u="$env:DOCKER_USER" -p="$env:DOCKER_PASS"
         docker push tobiasfenster/plannerexandimport
