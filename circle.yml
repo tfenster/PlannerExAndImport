@@ -3,7 +3,7 @@ jobs:
   build:
     working_directory: /temp
     docker:
-      - image: microsoft/dotnet:2.1-sdk
+      - image: microsoft/dotnet:2.1-sdk-nanoserver-sac2016
     environment:
       DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
       DOTNET_CLI_TELEMETRY_OPTOUT: 1
