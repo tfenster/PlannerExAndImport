@@ -5,7 +5,7 @@ environment:
   DOCKER_USER:
     secure: nHwrPdbn8UjqclpwV3Mpug==
   DOCKER_PASS:
-    secure: 5ECm1x1PW9wCiCDsRQdOvQ==
+    secure: h9BSHdR6OCF3WuosEh1Rzw==
 
 install:
 - ps: docker version
