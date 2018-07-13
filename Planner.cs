@@ -15,7 +15,7 @@ namespace PlannerExAndImport
     public class Planner
     {
         // URLs and settings for the Graph connection
-        private const string GRAPH_ENDPOINT = "https://graph.microsoft.com";
+        private coraph.microsoft.com";
         private const string PLANNER_SUB = "/beta/planner/";
         private const string GROUPS_SUB = "/beta/groups/";
         private const string RESOURCE_ID = GRAPH_ENDPOINT;
