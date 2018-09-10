@@ -6,9 +6,6 @@ variables:
   dockerId: 'tobiasfenster'
 
 steps:
-- script: docker build -f Dockerfile -t $(dockerId)/$(imageName) .
-  displayName: 'docker build'
-
 - task: Docker@1
   displayName: 'Build an image'
   inputs:
