@@ -17,6 +17,8 @@ steps:
   displayName: Login
   inputs:
     command: login
+    containerregistrytype: 'Container Registry'
+    dockerRegistryEndpoint: 'docker_hub_connection'
 - task: Docker@1
   displayName: 'Push an image'
   inputs:
