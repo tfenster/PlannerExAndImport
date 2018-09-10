@@ -1,0 +1,24 @@
+pool:
+  vmImage: 'VS2017-Win2016'
+
+variables:
+  imageName: 'plannerexandimport:$(build.buildId)'
+  dockerId: 'tobiasfenster'
+
+steps:
+- script: docker build -f Dockerfile -t $(dockerId)/$(imageName) .
+  displayName: 'docker build'
+
+- task: Docker@1
+  displayName: 'Build an image'
+  inputs:
+    imageName: '$(dockerId)/$(imageName)'
+- task: Docker@1
+  displayName: Login
+  inputs:
+    command: login
+- task: Docker@1
+  displayName: 'Push an image'
+  inputs:
+    command: 'push'
+    imageName: '$(dockerId)/$(imageName)'
