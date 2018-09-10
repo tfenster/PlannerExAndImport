@@ -2,7 +2,7 @@ pool:
   vmImage: 'VS2017-Win2016'
 
 variables:
-  imageName: 'plannerexandimport:$(build.buildId)'
+  imageName: 'plannerexandimport:windows'
   dockerId: 'tobiasfenster'
 
 steps:
