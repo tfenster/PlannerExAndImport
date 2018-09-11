@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.IdentityModel.Clients.ActiveDirectory;
@@ -205,7 +206,11 @@ namespace PlannerExAndImport
         // see https://github.com/Azure-Samples/active-directory-dotnet-deviceprofile
         private static async Task<AuthenticationResult> GetToken()
         {
-            AuthenticationContext ctx = new AuthenticationContext("https://login.microsoftonline.com/" + TENANT, true, new EncryptedFileCache());
+            AuthenticationContext ctx = new AuthenticationContext("https://login.microsoftonline.com/" + TENANT, true);
+            if (OperatingSystem.IsWindows())  // EncryptedFileCache only works on Windows
+            {
+                ctx = new AuthenticationContext("https://login.microsoftonline.com/" + TENANT, true, new EncryptedFileCache());
+            }
             AuthenticationResult result = null;
             try
             {
@@ -229,5 +234,18 @@ namespace PlannerExAndImport
             result = await ctx.AcquireTokenByDeviceCodeAsync(codeResult);
             return result;
         }
+    }
+
+    // thanks to https://blog.mariusschulz.com/2017/02/28/detecting-the-operating-system-in-net-core
+    public static class OperatingSystem
+    {
+        public static bool IsWindows() =>
+            RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
+
+        public static bool IsMacOS() =>
+            RuntimeInformation.IsOSPlatform(OSPlatform.OSX);
+
+        public static bool IsLinux() =>
+            RuntimeInformation.IsOSPlatform(OSPlatform.Linux);
     }
 }
