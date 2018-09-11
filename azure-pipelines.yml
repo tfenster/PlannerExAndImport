@@ -2,9 +2,9 @@ jobs:
 - template: azure-pipelines.jobtemplate.yml
   parameters:
     os: linux
-    vmImage: ubuntu-1604
+    vmImage: 'Ubuntu 16.04'
 
 - template: azure-pipelines.jobtemplate.yml
   parameters:
     os: windows
-    vmImage: vs2017-win2016
+    vmImage: 'VS2017-Win2016'
