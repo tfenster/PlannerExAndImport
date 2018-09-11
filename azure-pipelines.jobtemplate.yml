@@ -1,10 +1,9 @@
 parameters:
   os: ''
   vmImage: ''
-  name: ''
 
 jobs:
-- job: ${{ parameters.name }}
+- job: ${{ parameters.os }}
   pool: 
     vmImage: ${{ parameters.vmImage }}
   variables:
