@@ -1,23 +1,10 @@
-pool:
-  vmImage: 'VS2017-Win2016'
+jobs:
+- template: azure-pipelines.jobtemplate.yml
+  parameters:
+    os: linux
+    vmImage: ubuntu-1604
 
-variables:
-  imageName: 'plannerexandimport:windows'
-  dockerId: 'tobiasfenster'
-
-steps:
-- task: Docker@1
-  displayName: 'Build an image'
-  inputs:
-    imageName: '$(dockerId)/$(imageName)'
-- task: Docker@1
-  displayName: Login
-  inputs:
-    command: login
-    containerregistrytype: 'Container Registry'
-    dockerRegistryEndpoint: 'docker_hub_connection'
-- task: Docker@1
-  displayName: 'Push an image'
-  inputs:
-    command: 'push'
-    imageName: '$(dockerId)/$(imageName)'
+- template: azure-pipelines.jobtemplate.yml
+  parameters:
+    os: windows
+    vmImage: vs2017-win2016
