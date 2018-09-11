@@ -7,14 +7,14 @@ jobs:
   pool: 
     vmImage: ${{ parameters.vmImage }}
   variables:
-    imageName: format('plannerexandimport:{0}', parameters.os)
+    imageName: ${{ format('plannerexandimport:{0}', parameters.os) }}
     dockerId: 'tobiasfenster'
   steps:
   - task: Docker@1
     displayName: 'Build an image'
     inputs:
       imageName: '$(dockerId)/$(imageName)'
-      dockerfile: format('Dockerfile.{0}', parameters.os)
+      dockerfile: ${{ format('Dockerfile.{0}', parameters.os) }}
   - task: Docker@1
     displayName: Login
     inputs:
