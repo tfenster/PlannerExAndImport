@@ -2,7 +2,6 @@ parameters:
   os: ''
   vmImage: ''
   sdk: ''
-  rid: ''
   runtime: ''
 
 jobs:
@@ -16,7 +15,7 @@ jobs:
   - task: Docker@1
     displayName: 'Build an image'
     inputs:
-      arguments: ${{ format('--build-arg SDK={0} --build-arg RID={1} --build-arg RUNTIME={2}', parameters.sdk, parameters.rid, parameters.runtime) }}
+      arguments: ${{ format('--build-arg SDK={0} --build-arg RUNTIME={1}', parameters.sdk, parameters.runtime) }}
       imageName: '$(dockerId)/$(imageName)'
   - task: Docker@1
     displayName: Login

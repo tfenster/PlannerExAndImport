@@ -9,9 +9,8 @@ RUN dotnet restore
 COPY *.cs ./
 COPY JSON/. ./JSON
 RUN dotnet build
-ARG RID
 RUN dotnet publish -c Release
 
 FROM microsoft/dotnet:$RUNTIME AS runtime
 WORKDIR /app
-COPY --from=build /app/bin/Release/netcoreapp2.1/${RID}/publish/. ./
+COPY --from=build /app/bin/Release/netcoreapp2.1/publish/. ./

@@ -4,7 +4,6 @@ jobs:
     os: linux
     vmImage: 'Ubuntu 16.04'
     sdk: '2.1-sdk-alpine'
-    rid: 'linux-musl-x64'
     runtime: '2.1-runtime-alpine'
 
 - template: azure-pipelines.jobtemplate.yml
@@ -12,5 +11,4 @@ jobs:
     os: windows
     vmImage: 'VS2017-Win2016'
     sdk: '2.1-sdk-nanoserver-sac2016'
-    rid: 'win10-x64'
     runtime: '2.1-runtime-nanoserver-sac2016'
