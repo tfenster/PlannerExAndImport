@@ -10,7 +10,7 @@ COPY *.cs ./
 COPY JSON/. ./JSON
 RUN dotnet build
 ARG RID
-RUN dotnet publish -c Release -r $RID
+RUN dotnet publish -c Release
 
 FROM microsoft/dotnet:$RUNTIME AS runtime
 WORKDIR /app
