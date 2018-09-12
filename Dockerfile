@@ -1,4 +1,4 @@
-ARG SDK=2.1-sdk
+ARG SDK
 FROM microsoft/dotnet:$SDK AS build
 WORKDIR /app
 
@@ -8,10 +8,10 @@ RUN dotnet restore
 COPY *.cs ./
 COPY JSON/. ./JSON
 RUN dotnet build
-ARG RID=win10-x64
-RUN dotnet publish -c Release -r $RELEASE_TYPE
+ARG RID
+RUN dotnet publish -c Release -r $RID
 
-ARG RUNTIME=2.1-runtime
+ARG RUNTIME
 FROM microsoft/dotnet:$RUNTIME AS runtime
 WORKDIR /app
 COPY --from=build /app/bin/Release/netcoreapp2.1/$RID/publish/. ./
