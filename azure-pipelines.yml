@@ -3,12 +3,6 @@ jobs:
   pool: 
     vmImage: 'Ubuntu 16.04'
   steps:
-  - task: Docker@1
-    displayName: Login
-    inputs:
-      command: login
-      containerregistrytype: 'Container Registry'
-      dockerRegistryEndpoint: 'docker_hub_connection'
   - bash: |
      mkdir -p ~/.docker
      echo '{ "experimental": "enabled" }' > ~/.docker/config.json
