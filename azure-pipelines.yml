@@ -12,6 +12,7 @@ jobs:
   - bash: |
      mkdir -p ~/.docker
      echo '{ "experimental": "enabled" }' > ~/.docker/config.json
+     docker login -u $(docker_user) -p $(docker_pwd)
      docker --config ~/.docker manifest create tobiasfenster/plannerexandimport:latest  tobiasfenster/plannerexandimport:linux tobiasfenster/plannerexandimport:windows
      docker --config ~/.docker manifest push tobiasfenster/plannerexandimport:latest 
     displayName: 'Create Manifest' 
