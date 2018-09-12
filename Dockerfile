@@ -1,4 +1,5 @@
 ARG SDK
+ARG RUNTIME
 FROM microsoft/dotnet:$SDK AS build
 WORKDIR /app
 
@@ -11,7 +12,6 @@ RUN dotnet build
 ARG RID
 RUN dotnet publish -c Release -r $RID
 
-ARG RUNTIME
 FROM microsoft/dotnet:$RUNTIME AS runtime
 WORKDIR /app
 COPY --from=build /app/bin/Release/netcoreapp2.1/$RID/publish/. ./
