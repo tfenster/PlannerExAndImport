@@ -1,5 +1,5 @@
 ARG SDK=2.1-sdk
-FROM microsoft/dotnet:$BUILD_IMAGE AS build
+FROM microsoft/dotnet:$SDK AS build
 WORKDIR /app
 
 COPY PlannerExAndImport.csproj .
