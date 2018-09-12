@@ -18,8 +18,8 @@ jobs:
     inputs:
       buildArguments: | 
         SDK=2.1-sdk-alpine
-        ${{ format('RID={0}', parameters.rid) }}
-        ${{ format('RUNTIME={0}', parameters.runtime) }}
+        RID=linux-musl-x64
+        RUNTIME=2.1-runtime-alpine
       imageName: '$(dockerId)/$(imageName)'
   - task: Docker@1
     displayName: Login
