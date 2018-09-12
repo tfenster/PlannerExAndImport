@@ -18,9 +18,9 @@ jobs:
     inputs:
       imageName: '$(dockerId)/$(imageName)'
       buildArguments: | 
-        ${{ format('SDK:{0}', parameters.sdk) }}
-        ${{ format('RID:{0}', parameters.rid) }}
-        ${{ format('RUNTIME:{0}', parameters.runtime) }}
+        ${{ format('SDK={0}', parameters.sdk) }}
+        ${{ format('RID={0}', parameters.rid) }}
+        ${{ format('RUNTIME={0}', parameters.runtime) }}
   - task: Docker@1
     displayName: Login
     inputs:
