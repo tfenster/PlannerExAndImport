@@ -17,7 +17,7 @@ jobs:
     displayName: 'Build an image'
     inputs:
       buildArguments: | 
-        ${{ format('SDK={0}', parameters.sdk) }}
+        SDK=2.1-sdk-alpine
         ${{ format('RID={0}', parameters.rid) }}
         ${{ format('RUNTIME={0}', parameters.runtime) }}
       imageName: '$(dockerId)/$(imageName)'
