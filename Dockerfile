@@ -14,4 +14,4 @@ RUN dotnet publish -c Release -r $RID
 
 FROM microsoft/dotnet:$RUNTIME AS runtime
 WORKDIR /app
-COPY --from=build /app/bin/Release/netcoreapp2.1/$RID/publish/. ./
+COPY --from=build /app/bin/Release/netcoreapp2.1/${RID}/publish/. ./
