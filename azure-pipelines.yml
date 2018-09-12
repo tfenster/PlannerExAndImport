@@ -1,18 +1,4 @@
 jobs:
-- template: azure-pipelines.jobtemplate.yml
-  parameters:
-    os: linux
-    vmImage: 'Ubuntu 16.04'
-    sdk: '2.1-sdk-alpine'
-    runtime: '2.1-runtime-alpine'
-
-- template: azure-pipelines.jobtemplate.yml
-  parameters:
-    os: windows
-    vmImage: 'VS2017-Win2016'
-    sdk: '2.1-sdk-nanoserver-sac2016'
-    runtime: '2.1-runtime-nanoserver-sac2016'
-    
 - job: manifest
   pool: 
     vmImage: 'Ubuntu 16.04'
@@ -23,9 +9,10 @@ jobs:
       command: login
       containerregistrytype: 'Container Registry'
       dockerRegistryEndpoint: 'docker_hub_connection'
-  - powershell: './manifest.ps1' 
-    displayName: 'Create Manifest'
-  dependsOn:
-  - linux
-  - windows
+  - powershell: |
+     if (!(Test-Path ~/.docker)) { mkdir ~/.docker }
+     '{ "experimental": "enabled" }' | Out-File ~/.docker/config.json -Encoding Ascii
+     docker manifest create tobiasfenster/plannerexandimport:latest  tobiasfenster/plannerexandimport:linux tobiasfenster/plannerexandimport:windows
+     docker manifest push tobiasfenster/plannerexandimport:latest 
+    displayName: 'Create Manifest' 
    
