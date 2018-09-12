@@ -2,9 +2,6 @@ jobs:
 - job: manifest
   pool: 
     vmImage: 'Ubuntu 16.04'
-  dependsOn:
-  - linux
-  - windows
   steps:
   - task: Docker@1
     displayName: Login
