@@ -16,7 +16,11 @@ jobs:
   - task: Docker@1
     displayName: 'Build an image'
     inputs:
-      buildArguments: 'SDK=2.1-sdk-alpine'
+      arguments: ${{ format('--build-arg SDK={0} --build-arg RID={1} --build-arg RUNTIME={2}', parameters.sdk, parameters.rid, parameters.runtime) }}
+      buildArguments: 
+        SDK:2.1-sdk-alpine
+        RID:linux-musl-x64
+        RUNTIME:2.1-runtime-alpine
       imageName: '$(dockerId)/$(imageName)'
   - task: Docker@1
     displayName: Login
