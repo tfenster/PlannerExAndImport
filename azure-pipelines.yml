@@ -9,9 +9,9 @@ jobs:
       command: login
       containerregistrytype: 'Container Registry'
       dockerRegistryEndpoint: 'docker_hub_connection'
-  - powershell: |
-     if (!(Test-Path ~/.docker)) { mkdir ~/.docker }
-     '{ "experimental": "enabled" }' | Out-File ~/.docker/config.json -Encoding Ascii
+  - bash: |
+     mkdir -p ~/.docker
+     echo '{ "experimental": "enabled" }' > ~/.docker/config.json
      docker --config ~/.docker manifest create tobiasfenster/plannerexandimport:latest  tobiasfenster/plannerexandimport:linux tobiasfenster/plannerexandimport:windows
      docker --config ~/.docker manifest push tobiasfenster/plannerexandimport:latest 
     displayName: 'Create Manifest' 
