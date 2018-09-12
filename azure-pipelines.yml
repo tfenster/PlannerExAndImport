@@ -6,5 +6,12 @@ jobs:
   - linux
   - windows
   steps:
+  - task: Docker@1
+    displayName: Login
+    inputs:
+      command: login
+      containerregistrytype: 'Container Registry'
+      dockerRegistryEndpoint: 'docker_hub_connection'
   - powershell: './manifest.ps1' 
+    displayName: 'Create Manifest'
    
