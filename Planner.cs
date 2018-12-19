@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Runtime.InteropServices;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.IdentityModel.Clients.ActiveDirectory;
@@ -19,9 +21,11 @@ namespace PlannerExAndImport
         private const string GRAPH_ENDPOINT = "https://graph.microsoft.com";
         private const string PLANNER_SUB = "/beta/planner/";
         private const string GROUPS_SUB = "/beta/groups/";
+        private const string USERS_SUB = "/v1.0/users/";
         private const string RESOURCE_ID = GRAPH_ENDPOINT;
         public static string CLIENT_ID = "";
         public static string TENANT = "";
+        private static Dictionary<string, string> users = new Dictionary<string, string>();
 
         // export a plan and optionally output it as json
         public static Plan Export(bool output = true)
@@ -125,6 +129,39 @@ namespace PlannerExAndImport
             Console.WriteLine("Import is done");
         }
 
+        public static void ExportToCSV()
+        {
+            // export the plan
+            Console.WriteLine("Select the plan to export");
+            Plan exportedPlan = Export(false);
+
+            // convert the plan to CSV
+            StringWriter csvString = new StringWriter();
+            csvString.WriteLine("Plan;Bucket;Task;Zugewiesen an;Fällig am;Erledigt am;Erledigt von;Erstellt am;Erstellt von");
+            foreach (var bucket in exportedPlan.Buckets) {
+                foreach (var task in bucket.Tasks) {
+                    var completedAt = "";
+                    if (task.CompletedDateTime != null) {
+                        completedAt = task.CompletedDateTime.ToString();
+                    }
+                    var completedBy = GetUserForEdBy(task.CompletedBy) ?? "--";
+
+                    var dueAt = "";
+                    if (task.DueDateTime != null) {
+                        dueAt = task.DueDateTime.ToString();
+                    }
+                    var createdBy = GetUserForEdBy(task.CreatedBy) ?? "--";
+
+                    var assignedTo = GetAssigned(task.Assignments);
+
+                    if (task.CompletedDateTime == null) {}
+                    csvString.WriteLine($"{exportedPlan.Title};{bucket.Name};{task.Title};{assignedTo};{dueAt};{completedAt};{completedBy};{task.CreatedDateTime};{createdBy}");
+                }
+            }
+
+            File.WriteAllText(exportedPlan.Title + ".csv", csvString.ToString());
+        }
+
         public static void ForgetCredentials()
         {
             AuthenticationContext ctx = new AuthenticationContext("https://login.microsoftonline.com/common");
@@ -194,6 +231,11 @@ namespace PlannerExAndImport
             return PrepareClient(GROUPS_SUB);
         }
 
+        private static HttpClient PrepareUsersClient()
+        {
+            return PrepareClient(USERS_SUB);
+        }
+
         private static HttpClient PrepareClient(string sub)
         {
             var token = GetToken().Result;
@@ -233,6 +275,43 @@ namespace PlannerExAndImport
             Console.WriteLine("Message: " + codeResult.Message + "\n");
             result = await ctx.AcquireTokenByDeviceCodeAsync(codeResult);
             return result;
+        }
+
+        private static string GetAssigned(Dictionary<string, Assignment> assignments)
+        {
+            if (assignments.Values.Count > 0)
+            {
+                var sb = new StringBuilder();
+                var delim = "";
+                foreach (Assignment assignment in assignments.Values) {
+                    sb.Append(delim);
+                    sb.Append(GetUserForEdBy(assignment.AssignedBy) ?? "--");
+                    delim = ", ";
+                }
+                return sb.ToString();
+            }
+            else
+            {
+                return "--";
+            }
+        }
+
+        private static string GetUserForEdBy(EdBy edBy)
+        {
+            if (edBy == null || edBy.User == null)
+                return null;
+            var id = edBy.User.Id;
+            if (users.ContainsKey(id))
+                return users[id];
+            else
+            {
+                using (var httpClient = PrepareUsersClient())
+                {
+                    var user = GraphResponse<UserResponse>.Get(id, httpClient).Result;
+                    users.Add(id, user.DisplayName);
+                    return user.DisplayName;
+                }
+            }
         }
     }
 

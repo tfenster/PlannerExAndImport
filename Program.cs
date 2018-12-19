@@ -48,7 +48,8 @@ namespace PlannerExAndImport
                 {
                     Console.WriteLine("");
                     Console.WriteLine("Select action by entering the letter:");
-                    Console.WriteLine("E) export plan");
+                    Console.WriteLine("E) export plan to JSON");
+                    Console.WriteLine("C) export plan to CSV");
                     Console.WriteLine("I) export and then import plan");
                     Console.WriteLine("F) forget stored credentials");
                     Console.WriteLine("H) help");
@@ -60,6 +61,9 @@ namespace PlannerExAndImport
                     {
                         case "e":
                             Planner.Export();
+                            break;
+                        case "c":
+                            Planner.ExportToCSV();
                             break;
                         case "i":
                             Planner.Import();
