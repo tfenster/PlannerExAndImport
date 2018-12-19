@@ -283,10 +283,16 @@ namespace PlannerExAndImport
             {
                 var sb = new StringBuilder();
                 var delim = "";
-                foreach (Assignment assignment in assignments.Values) {
-                    sb.Append(delim);
-                    sb.Append(GetUserForEdBy(assignment.AssignedBy) ?? "--");
-                    delim = ", ";
+                List<string> added = new List<string>();
+                foreach (string assignment in assignments.Keys) {
+                    var user = GetUserForId(assignment) ?? "--";
+                    if (! added.Contains(user)) 
+                    {
+                        sb.Append(delim);
+                        sb.Append(user);
+                        delim = ", ";
+                        added.Add(user);
+                    }
                 }
                 return sb.ToString();
             }
@@ -301,6 +307,19 @@ namespace PlannerExAndImport
             if (edBy == null || edBy.User == null)
                 return null;
             var id = edBy.User.Id;
+            if (users.ContainsKey(id))
+                return users[id];
+            else
+            {
+                var user = GetUserForId(id);
+                return GetUserForId(id);
+            }
+        }
+
+        private static string GetUserForId(string id)
+        {
+            if (id == null)
+                return null;
             if (users.ContainsKey(id))
                 return users[id];
             else
