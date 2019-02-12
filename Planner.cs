@@ -28,44 +28,52 @@ namespace PlannerExAndImport
         private static Dictionary<string, string> users = new Dictionary<string, string>();
 
         // export a plan and optionally output it as json
-        public static Plan Export(bool output = true)
+        public static Plan[] Export(bool output = true, bool allowMultiSelect = false)
         {
-            Plan plan = SelectPlan();
+            Plan[] plans = SelectPlan(allowMultiSelect);
+            if (! allowMultiSelect && plans.Length > 1) {
+                Console.WriteLine("You can only select 1 plan in this case");
+                return null;
+            }
 
             using (var httpClient = PreparePlannerClient())
             {
-                // get all buckets, tasks and task details
-                var buckets = GraphResponse<BucketResponse>.Get("plans/" + plan.Id + "/buckets", httpClient).Result.Buckets;
-                var tasks = GraphResponse<TaskResponse>.Get("plans/" + plan.Id + "/tasks", httpClient).Result.Tasks;
+                foreach (Plan plan in plans) {
+                    // get all buckets, tasks and task details
+                    var buckets = GraphResponse<BucketResponse>.Get("plans/" + plan.Id + "/buckets", httpClient).Result.Buckets;
+                    var tasks = GraphResponse<TaskResponse>.Get("plans/" + plan.Id + "/tasks", httpClient).Result.Tasks;
 
-                foreach (var task in tasks)
-                {
-                    task.TaskDetail = GraphResponse<TaskDetailResponse>.Get("tasks/" + task.Id + "/details", httpClient).Result;
+                    foreach (var task in tasks)
+                    {
+                        task.TaskDetail = GraphResponse<TaskDetailResponse>.Get("tasks/" + task.Id + "/details", httpClient).Result;
+                    }
+
+                    // put tasks in buckets so that the plan object has all data hierarchically
+                    foreach (var bucket in buckets)
+                    {
+                        bucket.Tasks = tasks.Where(t => t.BucketId == bucket.Id).ToArray();
+                    }
+
+                    plan.Buckets = buckets;
                 }
-
-                // put tasks in buckets so that the plan object has all data hierarchically
-                foreach (var bucket in buckets)
-                {
-                    bucket.Tasks = tasks.Where(t => t.BucketId == bucket.Id).ToArray();
-                }
-
-                plan.Buckets = buckets;
             }
 
-            if (output)
-                Console.WriteLine(Serialize.ToJson(plan));
+            if (output) {
+                foreach (Plan plan in plans)
+                    Console.WriteLine(Serialize.ToJson(plan));
+            }
 
-            return plan;
+            return plans;
         }
 
         // export a plan and import everything into a new plan
         public static void Import()
         {
             Console.WriteLine("Step 1: Select the plan to export");
-            Plan exportedPlan = Export(false);
+            Plan exportedPlan = Export(false).FirstOrDefault();
 
             Console.WriteLine("Step 2: Select the plan in which you want to import");
-            Plan targetPlan = SelectPlan();
+            Plan targetPlan = SelectPlan(false).FirstOrDefault();
 
             bool addAssignments = Program.GetInput("Do you want to import the assignments (y/n)? This might send email notifications to the assignees. ") == "y";
             using (var httpClient = PreparePlannerClient())
@@ -132,34 +140,38 @@ namespace PlannerExAndImport
         public static void ExportToCSV()
         {
             // export the plan
-            Console.WriteLine("Select the plan to export");
-            Plan exportedPlan = Export(false);
+            Console.WriteLine("Select the plan(s) to export");
+            Plan[] exportedPlans = Export(false, true);
 
             // convert the plan to CSV
             StringWriter csvString = new StringWriter();
             csvString.WriteLine("Plan;Bucket;Task;Zugewiesen an;Fällig am;Erledigt am;Erledigt von;Erstellt am;Erstellt von");
-            foreach (var bucket in exportedPlan.Buckets) {
-                foreach (var task in bucket.Tasks) {
-                    var completedAt = "";
-                    if (task.CompletedDateTime != null) {
-                        completedAt = task.CompletedDateTime.ToString();
+            foreach (Plan exportedPlan in exportedPlans) {
+                foreach (var bucket in exportedPlan.Buckets) {
+                    foreach (var task in bucket.Tasks) {
+                        var completedAt = "";
+                        if (task.CompletedDateTime != null) {
+                            completedAt = task.CompletedDateTime.ToString();
+                        }
+                        var completedBy = GetUserForEdBy(task.CompletedBy) ?? "--";
+
+                        var dueAt = "";
+                        if (task.DueDateTime != null) {
+                            dueAt = task.DueDateTime.ToString();
+                        }
+                        var createdBy = GetUserForEdBy(task.CreatedBy) ?? "--";
+
+                        var assignedTo = GetAssigned(task.Assignments);
+
+                        if (task.CompletedDateTime == null) {}
+                        csvString.WriteLine($"{exportedPlan.Title};{bucket.Name};{task.Title};{assignedTo};{dueAt};{completedAt};{completedBy};{task.CreatedDateTime};{createdBy}");
                     }
-                    var completedBy = GetUserForEdBy(task.CompletedBy) ?? "--";
-
-                    var dueAt = "";
-                    if (task.DueDateTime != null) {
-                        dueAt = task.DueDateTime.ToString();
-                    }
-                    var createdBy = GetUserForEdBy(task.CreatedBy) ?? "--";
-
-                    var assignedTo = GetAssigned(task.Assignments);
-
-                    if (task.CompletedDateTime == null) {}
-                    csvString.WriteLine($"{exportedPlan.Title};{bucket.Name};{task.Title};{assignedTo};{dueAt};{completedAt};{completedBy};{task.CreatedDateTime};{createdBy}");
                 }
             }
 
-            File.WriteAllText(exportedPlan.Title + ".csv", csvString.ToString());
+            var filename = "ExportedPlans.csv";
+            if (exportedPlans.Length == 1) filename = exportedPlans[0].Title + ".csv";
+            File.WriteAllText(filename, csvString.ToString());
         }
 
         public static void ForgetCredentials()
@@ -172,7 +184,7 @@ namespace PlannerExAndImport
 
         // allows the user to search for a group, select the right one and then select the right plan
         // idea: if only one group matches or only one plan is in the group, that could be preselected
-        private static Plan SelectPlan()
+        private static Plan[] SelectPlan(bool allowMultiSelect)
         {
             using (var httpClient = PrepareGroupsClient())
             {
@@ -207,12 +219,17 @@ namespace PlannerExAndImport
                             {
                                 Console.WriteLine("(" + i + ") " + plans[i].Title);
                             }
+                            if (allowMultiSelect)
+                                Console.WriteLine("(" + plans.Length + ") All plans");
 
                             string selectedPlanS = Program.GetInput("Which plan do you want to use: ");
                             int selectedPlan = -1;
                             if (int.TryParse(selectedPlanS, out selectedPlan))
                             {
-                                return plans[selectedPlan];
+                                if (selectedPlan == plans.Length)
+                                    return plans;
+                                else
+                                    return new Plan[] { plans[selectedPlan] };
                             }
                         }
                     }
