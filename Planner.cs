@@ -31,14 +31,16 @@ namespace PlannerExAndImport
         public static Plan[] Export(bool output = true, bool allowMultiSelect = false)
         {
             Plan[] plans = SelectPlan(allowMultiSelect);
-            if (! allowMultiSelect && plans.Length > 1) {
+            if (!allowMultiSelect && plans.Length > 1)
+            {
                 Console.WriteLine("You can only select 1 plan in this case");
                 return null;
             }
 
             using (var httpClient = PreparePlannerClient())
             {
-                foreach (Plan plan in plans) {
+                foreach (Plan plan in plans)
+                {
                     // get all buckets, tasks and task details
                     var buckets = GraphResponse<BucketResponse>.Get("plans/" + plan.Id + "/buckets", httpClient).Result.Buckets;
                     var tasks = GraphResponse<TaskResponse>.Get("plans/" + plan.Id + "/tasks", httpClient).Result.Tasks;
@@ -58,12 +60,28 @@ namespace PlannerExAndImport
                 }
             }
 
-            if (output) {
+            if (output)
+            {
                 foreach (Plan plan in plans)
                     Console.WriteLine(Serialize.ToJson(plan));
             }
 
             return plans;
+        }
+
+        internal static void DuplicateBucket()
+        {
+            Console.WriteLine("Step 1: Select the bucket to duplicate");
+            Bucket bucket = SelectBucket();
+
+            Console.WriteLine("Step 2: Enter the name for the new bucket");
+            string newBucketName = Program.GetInput("Which name do you want to use: ");
+
+            bucket.Name = newBucketName;
+            using (var httpClient = PreparePlannerClient())
+            {
+                CreateBucket(bucket.PlanId, bucket, true, httpClient);
+            }
         }
 
         // export a plan and import everything into a new plan
@@ -85,56 +103,62 @@ namespace PlannerExAndImport
                 // create buckets and tasks and then set details for the created tasks (can't be done in one step)
                 foreach (Bucket bucket in exportedPlan.Buckets)
                 {
-                    bucket.PlanId = targetPlan.Id;
-                    // reset all order hints as the exported values don't work
-                    bucket.OrderHint = " !";
-                    var newBucket = GraphResponse<Bucket>.Post("buckets", httpClient, bucket).Result;
-
-                    bucket.Tasks = bucket.Tasks.Reverse().ToArray();
-                    foreach (PlannerTask task in bucket.Tasks)
-                    {
-                        task.PlanId = targetPlan.Id;
-                        task.BucketId = newBucket.Id;
-                        task.OrderHint = " !";
-
-                        // assignments contain the users assigned to a task
-                        if (addAssignments)
-                        {
-                            foreach (Assignment assignment in task.Assignments.Values)
-                            {
-                                assignment.OrderHint = " !";
-                            }
-                        }
-                        else 
-                        {
-                            task.Assignments = new Dictionary<string, Assignment>();
-                        }
-                        var newTask = GraphResponse<PlannerTask>.Post("tasks", httpClient, task).Result;
-                        // remember new task id for next loop
-                        task.Id = newTask.Id; 
-                    }
-
-                    // if we are too quick the created tasks are not available yet
-                    Thread.Sleep(2 * 1000);  
-
-                    foreach (PlannerTask task in bucket.Tasks)
-                    {
-                        var newTaskDetailsResponse = GraphResponse<TaskDetailResponse>.Get("tasks/" + task.Id + "/details", httpClient).Result;
-                        foreach (var checklist in task.TaskDetail.Checklist.Values)
-                        {
-                            checklist.OrderHint = " !";
-                        }
-                        foreach (var reference in task.TaskDetail.References.Values)
-                        {
-                            // same as order hint
-                            reference.PreviewPriority = " !";
-                        }
-                        var updatedTaskDetailsResponse = GraphResponse<TaskDetailResponse>.Patch("tasks/" + task.Id + "/details", httpClient, task.TaskDetail, newTaskDetailsResponse.OdataEtag).Result;
-                    }
+                    CreateBucket(targetPlan.Id, bucket, addAssignments, httpClient);
                 }
             }
 
             Console.WriteLine("Import is done");
+        }
+
+        private static void CreateBucket(string targetPlanId, Bucket bucket, bool addAssignments, HttpClient httpClient)
+        {
+            bucket.PlanId = targetPlanId;
+
+            // reset all order hints as the exported values don't work
+            bucket.OrderHint = " !";
+            var newBucket = GraphResponse<Bucket>.Post("buckets", httpClient, bucket).Result;
+
+            bucket.Tasks = bucket.Tasks.Reverse().ToArray();
+            foreach (PlannerTask task in bucket.Tasks)
+            {
+                task.PlanId = targetPlanId;
+                task.BucketId = newBucket.Id;
+                task.OrderHint = " !";
+
+                // assignments contain the users assigned to a task
+                if (addAssignments)
+                {
+                    foreach (Assignment assignment in task.Assignments.Values)
+                    {
+                        assignment.OrderHint = " !";
+                    }
+                }
+                else
+                {
+                    task.Assignments = new Dictionary<string, Assignment>();
+                }
+                var newTask = GraphResponse<PlannerTask>.Post("tasks", httpClient, task).Result;
+                // remember new task id for next loop
+                task.Id = newTask.Id;
+            }
+
+            // if we are too quick the created tasks are not available yet
+            Thread.Sleep(2 * 1000);
+
+            foreach (PlannerTask task in bucket.Tasks)
+            {
+                var newTaskDetailsResponse = GraphResponse<TaskDetailResponse>.Get("tasks/" + task.Id + "/details", httpClient).Result;
+                foreach (var checklist in task.TaskDetail.Checklist.Values)
+                {
+                    checklist.OrderHint = " !";
+                }
+                foreach (var reference in task.TaskDetail.References.Values)
+                {
+                    // same as order hint
+                    reference.PreviewPriority = " !";
+                }
+                var updatedTaskDetailsResponse = GraphResponse<TaskDetailResponse>.Patch("tasks/" + task.Id + "/details", httpClient, task.TaskDetail, newTaskDetailsResponse.OdataEtag).Result;
+            }
         }
 
         public static void ExportToCSV()
@@ -146,24 +170,29 @@ namespace PlannerExAndImport
             // convert the plan to CSV
             StringWriter csvString = new StringWriter();
             csvString.WriteLine("Plan;Bucket;Task;Zugewiesen an;Fällig am;Erledigt am;Erledigt von;Erstellt am;Erstellt von");
-            foreach (Plan exportedPlan in exportedPlans) {
-                foreach (var bucket in exportedPlan.Buckets) {
-                    foreach (var task in bucket.Tasks) {
+            foreach (Plan exportedPlan in exportedPlans)
+            {
+                foreach (var bucket in exportedPlan.Buckets)
+                {
+                    foreach (var task in bucket.Tasks)
+                    {
                         var completedAt = "";
-                        if (task.CompletedDateTime != null) {
+                        if (task.CompletedDateTime != null)
+                        {
                             completedAt = task.CompletedDateTime.ToString();
                         }
                         var completedBy = GetUserForEdBy(task.CompletedBy) ?? "--";
 
                         var dueAt = "";
-                        if (task.DueDateTime != null) {
+                        if (task.DueDateTime != null)
+                        {
                             dueAt = task.DueDateTime.ToString();
                         }
                         var createdBy = GetUserForEdBy(task.CreatedBy) ?? "--";
 
                         var assignedTo = GetAssigned(task.Assignments);
 
-                        if (task.CompletedDateTime == null) {}
+                        if (task.CompletedDateTime == null) { }
                         csvString.WriteLine($"{exportedPlan.Title};{bucket.Name};{task.Title};{assignedTo};{dueAt};{completedAt};{completedBy};{task.CreatedDateTime};{createdBy}");
                     }
                 }
@@ -180,6 +209,22 @@ namespace PlannerExAndImport
             ctx.TokenCache.Clear();
             Console.ForegroundColor = ConsoleColor.Green;
             Console.WriteLine("Vergessen.");
+        }
+
+        private static Bucket SelectBucket()
+        {
+            Plan exportedPlan = Export(false).FirstOrDefault();
+            for (int i = 0; i < exportedPlan.Buckets.Length; i++)
+                Console.WriteLine("(" + i + ") " + exportedPlan.Buckets[i].Name);
+
+            string selectedBucketS = Program.GetInput("Which bucket do you want to use: ");
+
+            int selectedBucket = -1;
+            if (int.TryParse(selectedBucketS, out selectedBucket))
+            {
+                return exportedPlan.Buckets[selectedBucket];
+            }
+            throw new Exception("Please select a bucket");
         }
 
         // allows the user to search for a group, select the right one and then select the right plan
@@ -301,9 +346,10 @@ namespace PlannerExAndImport
                 var sb = new StringBuilder();
                 var delim = "";
                 List<string> added = new List<string>();
-                foreach (string assignment in assignments.Keys) {
+                foreach (string assignment in assignments.Keys)
+                {
                     var user = GetUserForId(assignment) ?? "--";
-                    if (! added.Contains(user)) 
+                    if (!added.Contains(user))
                     {
                         sb.Append(delim);
                         sb.Append(user);

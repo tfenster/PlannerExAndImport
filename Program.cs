@@ -51,6 +51,7 @@ namespace PlannerExAndImport
                     Console.WriteLine("E) export plan(s) to JSON");
                     Console.WriteLine("C) export plan(s) to CSV");
                     Console.WriteLine("I) export and then import plan");
+                    Console.WriteLine("D) duplicate a bucket in a plan");
                     Console.WriteLine("F) forget stored credentials");
                     Console.WriteLine("H) help");
                     Console.WriteLine("X) exit");
@@ -67,6 +68,9 @@ namespace PlannerExAndImport
                             break;
                         case "i":
                             Planner.Import();
+                            break;
+                        case "d":
+                            Planner.DuplicateBucket();
                             break;
                         case "f":
                             Planner.ForgetCredentials();
