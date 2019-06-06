@@ -118,6 +118,10 @@ namespace PlannerExAndImport
             bucket.OrderHint = " !";
             var newBucket = GraphResponse<Bucket>.Post("buckets", httpClient, bucket).Result;
 
+            // if we are too quick the created bucket is not available yet, make sure it it there
+            Thread.Sleep(5 * 1000);
+            var verifyNewBucket = GraphResponse<Bucket>.Get("buckets/" + newBucket.Id, httpClient).Result;
+
             bucket.Tasks = bucket.Tasks.Reverse().ToArray();
             foreach (PlannerTask task in bucket.Tasks)
             {
@@ -143,7 +147,7 @@ namespace PlannerExAndImport
             }
 
             // if we are too quick the created tasks are not available yet
-            Thread.Sleep(2 * 1000);
+            Thread.Sleep(5 * 1000);
 
             foreach (PlannerTask task in bucket.Tasks)
             {
