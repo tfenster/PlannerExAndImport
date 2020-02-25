@@ -19,8 +19,8 @@ namespace PlannerExAndImport
     {
         // URLs and settings for the Graph connection
         private const string GRAPH_ENDPOINT = "https://graph.microsoft.com";
-        private const string PLANNER_SUB = "/beta/planner/";
-        private const string GROUPS_SUB = "/beta/groups/";
+        private const string PLANNER_SUB = "/v1.0/planner/";
+        private const string GROUPS_SUB = "/v1.0/groups/";
         private const string USERS_SUB = "/v1.0/users/";
         private const string RESOURCE_ID = GRAPH_ENDPOINT;
         public static string CLIENT_ID = "";
@@ -28,7 +28,7 @@ namespace PlannerExAndImport
         private static Dictionary<string, string> users = new Dictionary<string, string>();
 
         // export a plan and optionally output it as json
-        public static Plan[] Export(bool output = true, bool allowMultiSelect = false)
+        public static Plan[] Export(bool output = true, bool allowMultiSelect = false, bool retrieveTaskDetail = true)
         {
             Plan[] plans = SelectPlan(allowMultiSelect);
             if (!allowMultiSelect && plans.Length > 1)
@@ -45,10 +45,9 @@ namespace PlannerExAndImport
                     var buckets = GraphResponse<BucketResponse>.Get("plans/" + plan.Id + "/buckets", httpClient).Result.Buckets;
                     var tasks = GraphResponse<TaskResponse>.Get("plans/" + plan.Id + "/tasks", httpClient).Result.Tasks;
 
-                    foreach (var task in tasks)
-                    {
-                        task.TaskDetail = GraphResponse<TaskDetailResponse>.Get("tasks/" + task.Id + "/details", httpClient).Result;
-                    }
+                    if (retrieveTaskDetail)
+                        foreach (var task in tasks)
+                            task.TaskDetail = GraphResponse<TaskDetailResponse>.Get("tasks/" + task.Id + "/details", httpClient).Result;
 
                     // put tasks in buckets so that the plan object has all data hierarchically
                     foreach (var bucket in buckets)
@@ -169,7 +168,7 @@ namespace PlannerExAndImport
         {
             // export the plan
             Console.WriteLine("Select the plan(s) to export");
-            Plan[] exportedPlans = Export(false, true);
+            Plan[] exportedPlans = Export(false, true, false);
 
             // convert the plan to CSV
             StringWriter csvString = new StringWriter();
@@ -393,9 +392,16 @@ namespace PlannerExAndImport
             {
                 using (var httpClient = PrepareUsersClient())
                 {
-                    var user = GraphResponse<UserResponse>.Get(id, httpClient).Result;
-                    users.Add(id, user.DisplayName);
-                    return user.DisplayName;
+                    try
+                    {
+                        var user = GraphResponse<UserResponse>.Get(id, httpClient).Result;
+                        users.Add(id, user.DisplayName);
+                        return user.DisplayName;
+                    }
+                    catch
+                    {
+                        return null;
+                    }
                 }
             }
         }
