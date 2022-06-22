@@ -8,7 +8,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.IdentityModel.Clients.ActiveDirectory" Version="3.19.8" />
-    <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
     <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="4.5.0" />
   </ItemGroup>
 
